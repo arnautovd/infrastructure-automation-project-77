@@ -106,7 +106,7 @@ func (c *APIClient) waitForServer(ctx context.Context, id int64) (serverResponse
 	for time.Now().Before(deadline) {
 		var err error
 		server, err = c.GetServer(ctx, id)
-		if err == nil && server.Status != "creating" && server.Status != "installing" {
+		if err == nil && (server.Status == "active" || server.Status == "running" || server.Status == "started") && server.PublicAddresses.Address != "" {
 			return server, nil
 		}
 		if err != nil {

@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -30,54 +32,27 @@ func (r *ServerResource) Metadata(_ context.Context, req resource.MetadataReques
 func (r *ServerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"make_from": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"rplan": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"location": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"ssh_keys": schema.SetAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.RequiresReplace(),
-				},
-			},
-			"public_address": schema.StringAttribute{
-				Computed: true,
-			},
-			"server_id": schema.StringAttribute{
-				Computed: true,
-			},
+			"id": schema.StringAttribute{Computed: true},
+			"name": schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+			"make_from": schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+			"rplan": schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+			"location": schema.StringAttribute{Required: true, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
+			"ssh_keys": schema.SetAttribute{Optional: true, ElementType: types.StringType, PlanModifiers: []planmodifier.Set{setplanmodifier.RequiresReplace()}},
+			"public_address": schema.StringAttribute{Computed: true},
+			"server_id":      schema.StringAttribute{Computed: true},
 		},
 	}
 }
 
 type serverModel struct {
+	ID            types.String `tfsdk:"id"`
 	Name          types.String `tfsdk:"name"`
 	MakeFrom      types.String `tfsdk:"make_from"`
 	Rplan         types.String `tfsdk:"rplan"`
 	Location      types.String `tfsdk:"location"`
 	SSHKeys       types.Set    `tfsdk:"ssh_keys"`
 	PublicAddress types.String `tfsdk:"public_address"`
+	ServerID      types.String `tfsdk:"server_id"`
 }
 
 func (r *ServerResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -107,11 +82,7 @@ func (r *ServerResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddAttributeError(path.Root("ssh_keys"), "Invalid SSH key ID", err.Error())
 		return
 	}
-	server, err := r.client.CreateServer(ctx, createServerRequest{
-		Name: plan.Name.ValueString(), MakeFrom: plan.MakeFrom.ValueString(),
-		Rplan: plan.Rplan.ValueString(), Location: plan.Location.ValueString(),
-		DoStart: true, Keys: keys,
-	})
+	server, err := r.client.CreateServer(ctx, createServerRequest{Name: plan.Name.ValueString(), MakeFrom: plan.MakeFrom.ValueString(), Rplan: plan.Rplan.ValueString(), Location: plan.Location.ValueString(), DoStart: true, Keys: keys})
 	if err != nil {
 		resp.Diagnostics.AddError("Create Vscale server failed", err.Error())
 		return
@@ -127,12 +98,12 @@ func (r *ServerResource) Create(ctx context.Context, req resource.CreateRequest,
 }
 
 func (r *ServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var stateID types.String
-	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("id"), &stateID)...)
+	stateID, diags := serverStateID(ctx, req.State)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id, err := strconv.ParseInt(stateID.ValueString(), 10, 64)
+	id, err := strconv.ParseInt(stateID, 10, 64)
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid Vscale server ID", err.Error())
 		return
@@ -152,6 +123,7 @@ func (r *ServerResource) Read(ctx context.Context, req resource.ReadRequest, res
 	resp.State.SetAttribute(ctx, path.Root("rplan"), server.Rplan)
 	resp.State.SetAttribute(ctx, path.Root("location"), server.Location)
 	resp.State.SetAttribute(ctx, path.Root("public_address"), server.PublicAddresses.Address)
+	resp.State.SetAttribute(ctx, path.Root("id"), strconv.FormatInt(server.CTID, 10))
 	resp.State.SetAttribute(ctx, path.Root("server_id"), strconv.FormatInt(server.CTID, 10))
 }
 
@@ -160,12 +132,12 @@ func (r *ServerResource) Update(_ context.Context, _ resource.UpdateRequest, res
 }
 
 func (r *ServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var stateID types.String
-	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("id"), &stateID)...)
+	stateID, diags := serverStateID(ctx, req.State)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	id, err := strconv.ParseInt(stateID.ValueString(), 10, 64)
+	id, err := strconv.ParseInt(stateID, 10, 64)
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid Vscale server ID", err.Error())
 		return
@@ -173,6 +145,17 @@ func (r *ServerResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if err := r.client.DeleteServer(ctx, id); err != nil {
 		resp.Diagnostics.AddError("Delete Vscale server failed", err.Error())
 	}
+}
+
+func serverStateID(ctx context.Context, state tfsdk.State) (string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var stateID types.String
+	diags.Append(state.GetAttribute(ctx, path.Root("id"), &stateID)...)
+	if stateID.ValueString() != "" {
+		return stateID.ValueString(), diags
+	}
+	diags.Append(state.GetAttribute(ctx, path.Root("server_id"), &stateID)...)
+	return stateID.ValueString(), diags
 }
 
 func stringSetToIDs(ctx context.Context, value types.Set) ([]int64, error) {
