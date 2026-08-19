@@ -13,10 +13,7 @@ provider-build:
 
 init: provider-build
 	$(TF) init \
-		-backend-config="endpoint=$(TF_STATE_ENDPOINT)" \
-		-backend-config="access_key=$(TF_STATE_ACCESS_KEY)" \
-		-backend-config="secret_key=$(TF_STATE_SECRET_KEY)" \
-		-backend-config="bucket=$(TF_STATE_BUCKET)"
+		-backend-config="organization=$(HCP_TERRAFORM_ORGANIZATION)"
 
 fmt:
 	$(TF) fmt -recursive

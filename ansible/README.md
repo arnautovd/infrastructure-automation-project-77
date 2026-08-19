@@ -12,8 +12,7 @@ Expected variables:
 
 ```yaml
 vscale_token: "..."
-terraform_backend_access_key: "..."
-terraform_backend_secret_key: "..."
+hcp_terraform_token: "..."
 ```
 
 The Vault password must be supplied externally through `ANSIBLE_VAULT_PASSWORD_FILE` or the CI secret store.

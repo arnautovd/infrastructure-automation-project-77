@@ -4,7 +4,7 @@
 
 ## Структура
 
-- `terraform/` — конфигурация Terraform и удалённого S3 backend.
+- `terraform/` — конфигурация Terraform и удалённого HCP Terraform backend.
 - `ansible/` — зашифрованные Ansible Vault переменные и локальные инструкции.
 - `Makefile` — инициализация, проверка, планирование и управление инфраструктурой.
 - `provider/` — собственный Vscale provider на Go и Terraform Plugin Framework.
@@ -15,20 +15,17 @@
 
 Установите Terraform, GNU Make и Go 1.23+.
 
-Перед запуском задайте токен Vscale и параметры S3 backend во внешних переменных:
+Создайте workspace `infrastructure-automation-project-77` в HCP Terraform и задайте во внешних переменных:
 
 ```text
 terraform init \
-  -backend-config="endpoint=$env:TF_STATE_ENDPOINT" \
-  -backend-config="access_key=$env:TF_STATE_ACCESS_KEY" \
-  -backend-config="secret_key=$env:TF_STATE_SECRET_KEY" \
-  -backend-config="bucket=$env:TF_STATE_BUCKET"
+  -backend-config="organization=$env:HCP_TERRAFORM_ORGANIZATION"
 terraform plan -var="vscale_token=$env:VSCALE_API_TOKEN"
 ```
 
 Для PowerShell сначала задайте `$env:VSCALE_API_TOKEN`, а затем используйте `-var="vscale_token=$env:VSCALE_API_TOKEN"`. Токен из сообщения не добавляется в файлы.
 
-Backend-бакет создаётся заранее в S3-совместимом объектном хранилище. Значение `key` задаётся в `terraform/backend.tf` и определяет путь к state-файлу. Учётные данные backend передаются только через `-backend-config` или переменные окружения.
+Для HCP Terraform задайте также `$env:TF_TOKEN_app_terraform_io`. Этот токен не добавляется в репозиторий. Terraform state будет храниться в workspace HCP Terraform.
 
 ## Создаваемая инфраструктура
 
@@ -46,7 +43,7 @@ make apply
 make destroy
 ```
 
-`make init` сначала собирает custom provider из `provider/`, затем инициализирует Terraform через локальный filesystem mirror. Provider не скачивается из Terraform Registry.
+`make init` сначала собирает custom provider из `provider/`, затем инициализирует Terraform через локальный filesystem mirror и HCP Terraform backend. Provider не скачивается из Terraform Registry.
 
 Проверка без создания ресурсов:
 
