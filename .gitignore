@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Ansible
+ansible/vault-password-file
+ansible/decrypted-*.yml
+
+# Local tooling
+.terraform.lock.hcl
+.DS_Store
