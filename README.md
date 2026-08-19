@@ -29,6 +29,8 @@ terraform plan -var="vscale_token=$env:VSCALE_API_TOKEN"
 
 HCP token должен иметь доступ к workspace как минимум с правом `Plan`; для `make apply` требуется право записи/применения. Если workspace использует наборы permissions, выдайте токену соответствующую роль.
 
+В настройках workspace установите `Settings → General → Execution Mode → Local`. Это необходимо, потому что custom provider собирается и запускается локально, а HCP Terraform используется только для хранения state.
+
 ## Создаваемая инфраструктура
 
 Terraform создаёт ровно две VM Vscale с именами `web-01` и `web-02`. Образ, тариф, локация и ID заранее зарегистрированных SSH-ключей задаются переменными Terraform.
