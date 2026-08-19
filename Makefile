@@ -22,10 +22,10 @@ validate: init
 	$(TF) validate
 
 plan: validate
-	$(TF) plan -out=tfplan
+	$(TF) plan
 
-apply: plan
-	$(TF) apply tfplan
+apply: validate
+	$(TF) apply
 
 destroy: validate
 	$(TF) destroy
