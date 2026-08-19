@@ -18,7 +18,7 @@ variable "web_server_count" {
 variable "web_server_image" {
   description = "Vscale image identifier used to create each web server."
   type        = string
-  default     = "debian_12_64"
+  default     = "debian_11_64_001_master"
 }
 
 variable "web_server_plan" {
