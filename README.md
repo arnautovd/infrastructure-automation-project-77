@@ -7,12 +7,15 @@
 - `terraform/` — конфигурация Terraform и удалённого S3 backend.
 - `ansible/` — зашифрованные Ansible Vault переменные и локальные инструкции.
 - `Makefile` — инициализация, проверка, планирование и управление инфраструктурой.
+- `provider/` — собственный Vscale provider на Go и Terraform Plugin Framework.
 
 Секреты не хранятся в открытом виде. Перед запуском необходимо заменить значения-заглушки в Vault-файле и передать пароль Vault внешним способом.
 
 ## Terraform
 
-Установите Terraform и выполните команды из директории `terraform`:
+Установите Terraform, GNU Make и Go 1.23+.
+
+Перед запуском задайте токен Vscale и параметры S3 backend во внешних переменных:
 
 ```text
 terraform init \
@@ -42,6 +45,17 @@ make plan
 make apply
 make destroy
 ```
+
+`make init` сначала собирает custom provider из `provider/`, затем инициализирует Terraform через локальный filesystem mirror. Provider не скачивается из Terraform Registry.
+
+Проверка без создания ресурсов:
+
+```text
+make check
+make plan
+```
+
+`make plan` обращается к удалённому backend и формирует локальный файл `terraform/tfplan`. Создание ресурсов выполняется только командой `make apply`.
 
 Для PowerShell можно передать токен без записи в файлы:
 

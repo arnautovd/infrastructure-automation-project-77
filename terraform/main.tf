@@ -1,4 +1,4 @@
-resource "vscale_scalet" "web" {
+resource "vscale_server" "web" {
   count = var.web_server_count
 
   name      = format("web-%02d", count.index + 1)
@@ -10,10 +10,10 @@ resource "vscale_scalet" "web" {
 
 output "web_server_ids" {
   description = "IDs of the two web servers."
-  value       = vscale_scalet.web[*].id
+  value       = vscale_server.web[*].id
 }
 
 output "web_server_addresses" {
   description = "Public IPv4 addresses of the two web servers."
-  value       = vscale_scalet.web[*].public_address
+  value       = vscale_server.web[*].public_address
 }

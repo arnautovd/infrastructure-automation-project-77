@@ -16,3 +16,6 @@ ansible/decrypted-*.yml
 # Local tooling
 .terraform.lock.hcl
 .DS_Store
+
+# Custom provider build output
+provider-mirror/
