@@ -27,6 +27,8 @@ terraform plan -var="vscale_token=$env:VSCALE_API_TOKEN"
 
 Для HCP Terraform задайте также `$env:TF_TOKEN_app_terraform_io`. Этот токен не добавляется в репозиторий. Terraform state будет храниться в workspace HCP Terraform.
 
+HCP token должен иметь доступ к workspace как минимум с правом `Plan`; для `make apply` требуется право записи/применения. Если workspace использует наборы permissions, выдайте токену соответствующую роль.
+
 ## Создаваемая инфраструктура
 
 Terraform создаёт ровно две VM Vscale с именами `web-01` и `web-02`. Образ, тариф, локация и ID заранее зарегистрированных SSH-ключей задаются переменными Terraform.
