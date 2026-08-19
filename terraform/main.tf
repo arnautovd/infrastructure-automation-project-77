@@ -10,7 +10,7 @@ resource "vscale_server" "web" {
 
 output "web_server_ids" {
   description = "IDs of the two web servers."
-  value       = vscale_server.web[*].id
+  value       = vscale_server.web[*].server_id
 }
 
 output "web_server_addresses" {

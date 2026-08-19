@@ -4,7 +4,7 @@ terraform {
   required_providers {
     vscale = {
       source  = "arnautovd/vscale"
-      version = "0.1.0"
+      version = "0.1.1"
     }
   }
 }

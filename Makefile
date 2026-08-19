@@ -1,8 +1,8 @@
 TF_DIR := terraform
 TF := terraform -chdir=$(TF_DIR)
 PROVIDER_DIR := provider
-PROVIDER_MIRROR := provider-mirror/registry.terraform.io/arnautovd/vscale/0.1.0/windows_amd64
-PROVIDER_NAME := terraform-provider-vscale_v0.1.0_x5.exe
+PROVIDER_MIRROR := provider-mirror/registry.terraform.io/arnautovd/vscale/0.1.1/windows_amd64
+PROVIDER_NAME := terraform-provider-vscale_v0.1.1_x5.exe
 export TF_CLI_CONFIG_FILE := $(CURDIR)/.terraformrc
 
 .PHONY: provider-build init fmt validate plan apply destroy check
@@ -12,7 +12,7 @@ provider-build:
 	go -C $(PROVIDER_DIR) build -o ../$(PROVIDER_MIRROR)/$(PROVIDER_NAME) .
 
 init: provider-build
-	$(TF) init \
+	$(TF) init -upgrade \
 		-backend-config="organization=$(HCP_TERRAFORM_ORGANIZATION)"
 
 fmt:

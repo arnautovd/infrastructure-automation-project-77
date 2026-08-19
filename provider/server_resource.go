@@ -64,6 +64,9 @@ func (r *ServerResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"public_address": schema.StringAttribute{
 				Computed: true,
 			},
+			"server_id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -120,6 +123,7 @@ func (r *ServerResource) Create(ctx context.Context, req resource.CreateRequest,
 	resp.State.SetAttribute(ctx, path.Root("public_address"), server.PublicAddresses.Address)
 	resp.State.SetAttribute(ctx, path.Root("ssh_keys"), plan.SSHKeys)
 	resp.State.SetAttribute(ctx, path.Root("id"), strconv.FormatInt(server.CTID, 10))
+	resp.State.SetAttribute(ctx, path.Root("server_id"), strconv.FormatInt(server.CTID, 10))
 }
 
 func (r *ServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -148,6 +152,7 @@ func (r *ServerResource) Read(ctx context.Context, req resource.ReadRequest, res
 	resp.State.SetAttribute(ctx, path.Root("rplan"), server.Rplan)
 	resp.State.SetAttribute(ctx, path.Root("location"), server.Location)
 	resp.State.SetAttribute(ctx, path.Root("public_address"), server.PublicAddresses.Address)
+	resp.State.SetAttribute(ctx, path.Root("server_id"), strconv.FormatInt(server.CTID, 10))
 }
 
 func (r *ServerResource) Update(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {

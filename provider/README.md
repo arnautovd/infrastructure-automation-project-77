@@ -17,7 +17,7 @@ The provider waits for asynchronous server creation and deletion by polling the 
 
 ```text
 go test ./...
-go build -o bin/terraform-provider-vscale_v0.1.0.exe .
+go build -o bin/terraform-provider-vscale_v0.1.1.exe .
 ```
 
 The root `Makefile` builds this binary into a Terraform filesystem mirror and sets `TF_CLI_CONFIG_FILE` before running Terraform. This avoids downloading the custom provider from the public Registry.
