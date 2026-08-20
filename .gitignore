@@ -12,6 +12,10 @@ terraform.tfvars.json
 # Ansible
 ansible/vault-password-file
 ansible/decrypted-*.yml
+ansible/inventory/hosts.yml
+ansible/roles/*
+!ansible/roles/.gitkeep
+ansible/collections/
 
 # Local tooling
 .terraform.lock.hcl

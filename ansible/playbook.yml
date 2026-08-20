@@ -1,0 +1,40 @@
+---
+- name: Prepare web servers and deploy the Docker application
+  hosts: web
+  become: true
+  gather_facts: true
+
+  vars:
+    docker_image: "{{ lookup('ansible.builtin.env', 'DEPLOY_IMAGE') | default('nginx:1.27-alpine', true) }}"
+    docker_container_name: "{{ lookup('ansible.builtin.env', 'DEPLOY_CONTAINER_NAME') | default('web-app', true) }}"
+    docker_host_port: "{{ lookup('ansible.builtin.env', 'DEPLOY_HOST_PORT') | default('80', true) }}"
+    docker_container_port: "{{ lookup('ansible.builtin.env', 'DEPLOY_CONTAINER_PORT') | default('80', true) }}"
+
+  roles:
+    - role: geerlingguy.docker
+      tags:
+        - prepare
+        - docker
+
+  tasks:
+    - name: Deploy Docker application
+      community.docker.docker_container:
+        name: "{{ docker_container_name }}"
+        image: "{{ docker_image }}"
+        pull: true
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "{{ docker_host_port }}:{{ docker_container_port }}"
+      tags:
+        - deploy
+        - application
+
+    - name: Verify Docker application is running
+      community.docker.docker_container_info:
+        name: "{{ docker_container_name }}"
+      register: deployed_container
+      failed_when: not deployed_container.exists or deployed_container.container.State.Status != 'running'
+      tags:
+        - verify
+        - application

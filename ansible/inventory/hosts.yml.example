@@ -1,0 +1,9 @@
+---
+all:
+  children:
+    web:
+      hosts:
+        web-01:
+          ansible_host: 192.0.2.10
+        web-02:
+          ansible_host: 192.0.2.11
